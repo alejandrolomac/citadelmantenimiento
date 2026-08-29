@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-icon.png">
+    <link rel="icon" type="image/png" href="/img/faviconc.png">
+    <title>
+        Citadel Mantenimiento
+    </title>
+    <!--     Fonts and icons     -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+    <!-- Nucleo Icons -->
+    <link href="/assets/css/nucleo-icons.css" rel="stylesheet" />
+    <link href="/assets/css/nucleo-svg.css" rel="stylesheet" />
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="/assets/css/nucleo-svg.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.1/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.3/css/responsive.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.1/css/buttons.bootstrap5.min.css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="
+                https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js
+                "></script>
+    <script src="https://cdn.datatables.net/2.2.1/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.2.1/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/3.0.3/js/responsive.bootstrap5.min.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/3.2.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.1/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.0/js/buttons.colVis.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.0/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.2.0/js/buttons.html5.min.js"></script>
+    <script src="
+            https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js
+            "></script>
+    <script src="
+        https://cdn.jsdelivr.net/npm/pdfmake@0.2.18/build/pdfmake.min.js
+        "></script>
+
+        
+
+    <link href="
+https://cdn.jsdelivr.net/npm/sweetalert2@11.15.10/dist/sweetalert2.min.css
+" rel="stylesheet">
+
+    <!--   ApexCharts   -->
+    <script src="
+    https://cdn.jsdelivr.net/npm/apexcharts@4.4.0/dist/apexcharts.min.js
+    "></script>
+    <link href="
+https://cdn.jsdelivr.net/npm/apexcharts@4.4.0/dist/apexcharts.min.css
+" rel="stylesheet">
+
+    <script src="
+    https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js
+    "></script>
+
+    <!-- CSS Files -->
+    <link id="pagestyle" href="/assets/css/argon-dashboard.css" rel="stylesheet" />
+</head>
+
+<body class="{{ $class ?? '' }}">
+    <main class="main-content border-radius-lg">
+        @yield('content')
+    </main>
+
+
+    <!--   Core JS Files   -->
+
+    <script src="/assets/js/core/popper.min.js"></script>
+    <script src="/assets/js/core/bootstrap.min.js"></script>
+    <script src="/assets/js/plugins/perfect-scrollbar.min.js"></script>
+    <script src="/assets/js/plugins/smooth-scrollbar.min.js"></script>
+    <script>
+        var win = navigator.platform.indexOf('Win') > -1;
+        if (win && document.querySelector('#sidenav-scrollbar')) {
+            var options = {
+                damping: '0.5'
+            }
+            Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+        }
+    </script>
+    <!-- Github buttons -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+    <script src="
+                https://cdn.jsdelivr.net/npm/sweetalert2@11.15.10/dist/sweetalert2.all.min.js
+                "></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
+    <script src="/assets/js/argon-dashboard.js"></script>
+
+    <!-- Código para el logout -->
+    <script>
+        document.getElementById('logoutBtn').addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            try {
+                const response = await fetch('/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                            'content') // CSRF Token
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    window.location.href = '/login';
+                } else {
+                    alert('No se pudo cerrar sesión.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    </script>
+    @stack('js');
+</body>
+
+</html>

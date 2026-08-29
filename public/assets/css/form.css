@@ -1,0 +1,9 @@
+#wrap-form
+{
+    max-width: 900px;
+}
+
+#wrap-form td
+{
+    height: 60px !important;
+}
