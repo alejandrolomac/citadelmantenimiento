@@ -335,8 +335,7 @@
                     {
                         data: null,
                         render: function(data, type, row) {
-                            return row.nombre + ' - ' + row
-                                .type; // Concatenación de datos
+                            return row.nombre;
                         }
                     },
                     {

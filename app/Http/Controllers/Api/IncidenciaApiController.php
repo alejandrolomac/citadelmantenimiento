@@ -19,6 +19,10 @@ class IncidenciaApiController extends Controller
             'descripcion' => 'required|string',
             'unidad_id' => 'required|exists:unidad,id_unidad',
             'user_id' => 'nullable|exists:users,id',
+            'status' => 'nullable|string',
+            'conteo' => 'nullable|integer',
+            'reportado_por' => 'nullable|string',
+            'nivel_importancia' => 'nullable|string',
         ]);
 
         $incidencia = Incidencia::create($validated);
@@ -33,6 +37,10 @@ class IncidenciaApiController extends Controller
             'descripcion' => 'sometimes|string',
             'unidad_id' => 'sometimes|exists:unidad,id_unidad',
             'user_id' => 'nullable|exists:users,id',
+            'status' => 'nullable|string',
+            'conteo' => 'nullable|integer',
+            'reportado_por' => 'nullable|string',
+            'nivel_importancia' => 'nullable|string',
         ]);
 
         $incidencia->update($validated);

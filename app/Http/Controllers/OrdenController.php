@@ -32,6 +32,16 @@ class OrdenController extends Controller
         $orden->detalles = $request['detalles'];
         $orden->formulario = "{}"; // Mantener compatibilidad
 
+        if ($request->hasFile('adjuntos')) {
+            $archivos = [];
+            foreach ($request->file('adjuntos') as $file) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('ordenes', $filename, 'public');
+                $archivos[] = $path;
+            }
+            $orden->adjuntos = json_encode($archivos);
+        }
+
         $orden->save();
 
         return redirect()->route('orden.completar', ['id' => $orden->id_orden_trabajo]);
@@ -59,7 +69,7 @@ class OrdenController extends Controller
     public function editar($id)
     {
         $orden = Orden::findOrFail($id);
-        $unidades = DB::table('unidad')->where('estado', true)->get();
+        $unidades = \App\Models\Unidad::where('estado', true)->get();
 
         return view('editar_orden', [
             'orden'        => $orden,
@@ -80,6 +90,40 @@ class OrdenController extends Controller
         $orden->tipo_mantenimiento = $request->input('tipoMantenimiento');
         $orden->kilometraje        = $request->input('kilometraje', null);
         $orden->detalles           = $request->input('detalles');
+
+        $viejosArchivos = [];
+        if ($orden->adjuntos) {
+            $viejos = json_decode($orden->adjuntos, true);
+            if (is_array($viejos)) {
+                $viejosArchivos = $viejos;
+            }
+        }
+
+        // Eliminar archivos indicados
+        if ($request->has('eliminar_archivos')) {
+            $eliminar = $request->input('eliminar_archivos');
+            foreach ($eliminar as $delPath) {
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($delPath)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($delPath);
+                }
+                // Remover de $viejosArchivos
+                $viejosArchivos = array_filter($viejosArchivos, function($path) use ($delPath) {
+                    return $path !== $delPath;
+                });
+            }
+        }
+
+        // Agregar nuevos archivos
+        if ($request->hasFile('adjuntos')) {
+            foreach ($request->file('adjuntos') as $file) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('ordenes', $filename, 'public');
+                $viejosArchivos[] = $path;
+            }
+        }
+
+        // Reindexar array y guardar
+        $orden->adjuntos = json_encode(array_values($viejosArchivos));
 
         $orden->save();
 
@@ -180,7 +224,7 @@ class OrdenController extends Controller
             Storage::disk('public')->put("firmas/{$nombreTecnico}", $firmaTecnico);
 
             Firma::create([
-                'id_orden_trabajo' => $ordenId,
+                'orden_id' => $ordenId,
                 'nombre_archivo' => $nombreTecnico,
                 'tipo_firmante' => 'Tecnico',
             ]);
@@ -191,7 +235,7 @@ class OrdenController extends Controller
             Storage::disk('public')->put("firmas/{$nombreConductor}", $firmaConductor);
 
             Firma::create([
-                'id_orden_trabajo' => $ordenId,
+                'orden_id' => $ordenId,
                 'nombre_archivo' => $nombreConductor,
                 'tipo_firmante' => 'Conductor',
             ]);
@@ -229,6 +273,7 @@ class OrdenController extends Controller
             'nombre' => $unidad->nombre,
             'trabajos_realizados' => json_decode($orden->formulario, true) ?? [],
             'detalles' => $orden->detalles,
+            'adjuntos' => $orden->adjuntos,
         ];
 
         return view('completar', $data);

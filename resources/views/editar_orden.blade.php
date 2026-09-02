@@ -57,6 +57,41 @@
                     <label for="detalles" class="form-label">Detalles del Trabajo Realizado</label>
                     <textarea id="detalles" name="detalles" class="form-control" rows="10" placeholder="Describa todo el trabajo realizado en la unidad..." required>{{ $orden->detalles ?? '' }}</textarea>
                 </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label" for="adjuntos_input">Archivos Adjuntos / Fotos (Opcional)</label>
+                    <input type="file" id="adjuntos_input" class="form-control" accept="image/*,.pdf" multiple>
+                    <input type="file" id="adjuntos" name="adjuntos[]" multiple style="display: none;">
+                    <div id="preview-container" class="d-flex flex-wrap mt-3" style="gap: 10px;"></div>
+
+                    @if($orden->adjuntos)
+                        @php
+                            $archivos = json_decode($orden->adjuntos, true);
+                        @endphp
+                        @if(is_array($archivos) && count($archivos) > 0)
+                            <div class="mt-4" id="existing-files-container">
+                                <p class="mb-1 text-sm font-weight-bold">Archivos actuales (haz click en la X para eliminar):</p>
+                                <div class="d-flex flex-wrap mt-2" style="gap: 10px;">
+                                @foreach($archivos as $index => $archivo)
+                                    <div class="position-relative border p-1 rounded d-flex flex-column align-items-center justify-content-center existing-file" style="width: 100px; height: 100px; overflow: hidden;">
+                                        @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $archivo))
+                                            <img src="/storage/{{ $archivo }}" style="width: 100%; height: 100%; object-fit: cover;" class="rounded">
+                                        @else
+                                            <div class="d-flex align-items-center justify-content-center h-100 w-100 bg-light rounded">
+                                                <a href="/storage/{{ $archivo }}" target="_blank" style="font-size: 24px; text-decoration: none;">📄</a>
+                                            </div>
+                                        @endif
+                                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; line-height: 1;" onclick="removeExistingFile('{{ $archivo }}', this)">
+                                            &times;
+                                        </button>
+                                        <div class="text-truncate w-100 text-center mt-1" style="font-size: 10px; position: absolute; bottom: 0; background: rgba(255,255,255,0.8);" title="Archivo {{ $index + 1 }}">Archivo {{ $index + 1 }}</div>
+                                    </div>
+                                @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endif
+                    <div id="eliminar-archivos-container"></div>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary mt-3">Guardar</button>
@@ -92,6 +127,79 @@ document.addEventListener('DOMContentLoaded', function() {
         $(unidadSelect).on('change', updateDetails);
         // Run once on load to populate existing selection
         updateDetails();
+    }
+
+    const adjuntosInput = document.getElementById('adjuntos_input');
+    const hiddenAdjuntos = document.getElementById('adjuntos');
+    const previewContainer = document.getElementById('preview-container');
+    let selectedFiles = [];
+
+    if(adjuntosInput) {
+        adjuntosInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            
+            files.forEach(file => {
+                selectedFiles.push(file);
+                
+                const previewEl = document.createElement('div');
+                previewEl.className = 'position-relative border p-1 rounded d-flex flex-column align-items-center justify-content-center';
+                previewEl.style.width = '100px';
+                previewEl.style.height = '100px';
+                previewEl.style.overflow = 'hidden';
+                
+                const isImage = file.type.startsWith('image/');
+                
+                if (isImage) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewEl.innerHTML = `
+                            <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;" class="rounded">
+                            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; line-height: 1;" onclick="removeFile('${file.name}', this)">
+                                &times;
+                            </button>
+                            <div class="text-truncate w-100 text-center mt-1" style="font-size: 10px; position: absolute; bottom: 0; background: rgba(255,255,255,0.8);" title="${file.name}">${file.name}</div>
+                        `;
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    previewEl.innerHTML = `
+                        <div class="d-flex align-items-center justify-content-center h-100 w-100 bg-light rounded"><span style="font-size: 24px;">📄</span></div>
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; line-height: 1;" onclick="removeFile('${file.name}', this)">
+                            &times;
+                        </button>
+                        <div class="text-truncate w-100 text-center mt-1" style="font-size: 10px; position: absolute; bottom: 0; background: rgba(255,255,255,0.8);" title="${file.name}">${file.name}</div>
+                    `;
+                }
+                
+                previewContainer.appendChild(previewEl);
+            });
+            
+            updateHiddenInput();
+            adjuntosInput.value = ''; // allow selecting same files again
+        });
+    }
+    
+    window.removeFile = function(fileName, btn) {
+        selectedFiles = selectedFiles.filter(file => file.name !== fileName);
+        btn.parentElement.remove();
+        updateHiddenInput();
+    }
+    
+    function updateHiddenInput() {
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => {
+            dataTransfer.items.add(file);
+        });
+        hiddenAdjuntos.files = dataTransfer.files;
+    }
+
+    window.removeExistingFile = function(path, btn) {
+        btn.parentElement.remove();
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'eliminar_archivos[]';
+        input.value = path;
+        document.getElementById('eliminar-archivos-container').appendChild(input);
     }
 });
 </script>

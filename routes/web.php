@@ -17,7 +17,7 @@ use App\Http\Controllers\IncidenciaController;
 use App\Models\Incidencia;
 use Illuminate\Support\Facades\File;
 
-Route::get('/storage/{path}', function ($path) {
+Route::get('/archivos/{path}', function ($path) {
     $fullPath = storage_path('app/public/' . $path);
 
     if (! File::exists($fullPath)) {
@@ -101,7 +101,7 @@ Route::middleware(['auth'])->group(function () {
 
     //Orden
     Route::get('/orden', function () {
-        $unidades = DB::table('unidad')->where('estado', true)->get();
+        $unidades = \App\Models\Unidad::where('estado', true)->get();
         return view('home', compact('unidades'));
     })->middleware('can:Crear Mantenimiento');
     Route::get('/ordenes/data', [OrdenController::class, 'getData'])->name('ordenes.data')->middleware('can:Ver Mantenimiento');
@@ -116,7 +116,7 @@ Route::middleware(['auth'])->group(function () {
 
     //Mostrar info de unidades
     Route::get('/unidad/{id}', function ($id) {
-        $unidad = DB::table('unidad')->where('id_unidad', $id)->first();
+        $unidad = \App\Models\Unidad::where('id_unidad', $id)->first();
         if (!$unidad) {
             return response()->json(['error' => 'Unidad no encontrada'], 404);
         }

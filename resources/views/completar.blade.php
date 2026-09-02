@@ -146,7 +146,41 @@
                                             </tr>
                                             @endif
                                             @endforeach
+                                            @if(!empty($detalles))
+                                            <tr>
+                                                <td colspan="2"><strong>Detalles Generales:</strong><br>{!! nl2br(e($detalles)) !!}</td>
+                                            </tr>
+                                            @endif
                                         </table>
+                                    </div>
+
+                                    <h3>Archivos Adjuntos y Fotos</h3>
+                                    <div class="table-responsive p-2 text-center">
+                                        @if($adjuntos)
+                                            @php
+                                                $archivos = json_decode($adjuntos, true);
+                                            @endphp
+                                            @if(is_array($archivos) && count($archivos) > 0)
+                                                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                                                    @foreach($archivos as $archivo)
+                                                        <div style="border: 1px solid #ddd; padding: 5px; border-radius: 5px; width: 120px;">
+                                                            @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $archivo))
+                                                                <img src="/storage/{{ $archivo }}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px;">
+                                                            @else
+                                                                <div style="height: 100px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px;">
+                                                                    <a href="/storage/{{ $archivo }}" target="_blank" style="font-size: 30px; text-decoration: none;">📄</a>
+                                                                </div>
+                                                                <a href="/storage/{{ $archivo }}" target="_blank" class="btn btn-sm btn-info w-100 mt-2 mb-0 py-1" style="font-size: 10px;">Ver PDF</a>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <p>No hay archivos adjuntos.</p>
+                                            @endif
+                                        @else
+                                            <p>No hay archivos adjuntos.</p>
+                                        @endif
                                     </div>
 
 

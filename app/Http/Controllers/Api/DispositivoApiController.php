@@ -21,6 +21,8 @@ class DispositivoApiController extends Controller
             'type' => 'nullable|string|max:255',
             'fecha' => 'nullable|date',
             'estado' => 'nullable|boolean',
+            'ip' => 'nullable|string|max:45',
+            'tipo_dispositivo_id' => 'nullable|exists:tipo_dispositivos,id',
         ]);
 
         $unidad = Unidad::create($validated);
@@ -37,6 +39,8 @@ class DispositivoApiController extends Controller
             'type' => 'nullable|string|max:255',
             'fecha' => 'nullable|date',
             'estado' => 'nullable|boolean',
+            'ip' => 'nullable|string|max:45',
+            'tipo_dispositivo_id' => 'nullable|exists:tipo_dispositivos,id',
         ]);
 
         $unidad->update($validated);

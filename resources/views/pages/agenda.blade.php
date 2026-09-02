@@ -48,6 +48,12 @@
                     <label for="unidades">Unidad</label>
                     <select id="unidades" class="form-control" multiple="multiple" placeholder="Elija una unidad">
                     </select>
+
+                    <label class="mt-2" for="adjunto">Archivo Adjunto (Opcional)</label>
+                    <input type="file" id="adjunto" class="form-control" accept="image/*,.pdf">
+                    <div id="adjunto_container" class="mt-2" style="display: none;">
+                        <a href="#" id="adjunto_link" target="_blank" class="btn btn-sm btn-info mb-0">Ver Archivo Adjunto</a>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-success" id="saveBtn">Guardar</button>
@@ -137,6 +143,8 @@
                     document.getElementById('fecha_inicio').min = now;
                     document.getElementById('fecha_fin').value = '';
                     document.getElementById('fecha_fin').min = now;
+                    document.getElementById('adjunto').value = '';
+                    document.getElementById('adjunto_container').style.display = 'none';
 
 
 
@@ -179,6 +187,15 @@
                     document.getElementById('fecha_inicio').min = now;
                     document.getElementById('fecha_fin').min = now;
                     document.getElementById('saveBtn').setAttribute('data-id', evento.id);
+                    document.getElementById('adjunto').value = '';
+
+                    if (evento.extendedProps.adjunto) {
+                        document.getElementById('adjunto_container').style.display = 'block';
+                        document.getElementById('adjunto_link').href = evento.extendedProps.adjunto;
+                    } else {
+                        document.getElementById('adjunto_container').style.display = 'none';
+                        document.getElementById('adjunto_link').href = '#';
+                    }
 
                     // Mostrar el botón de eliminación solo cuando se edite un mantenimiento
                     document.getElementById('deleteBtn').style.display = 'inline-block';
@@ -239,21 +256,30 @@
                 }
 
                 let url = id ? `/agendas/${id}` : '/agendas';
-                let method = id ? 'PUT' : 'POST';
+                let method = id ? 'POST' : 'POST'; // We use POST for both, with _method=PUT for updates because of FormData
+
+                let formData = new FormData();
+                formData.append('titulo', titulo);
+                formData.append('descripcion', descripcion);
+                formData.append('fecha_inicio', fecha_inicio);
+                if (fecha_fin) formData.append('fecha_fin', fecha_fin);
+                formData.append('unidades', unidades.join(',')); // Enviar como string separada por comas
+
+                if (id) {
+                    formData.append('_method', 'PUT');
+                }
+
+                let adjunto = document.getElementById('adjunto').files[0];
+                if (adjunto) {
+                    formData.append('adjunto', adjunto);
+                }
 
                 fetch(url, {
                         method: method,
                         headers: {
-                            'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
-                        body: JSON.stringify({
-                            titulo,
-                            descripcion,
-                            fecha_inicio,
-                            fecha_fin,
-                            unidades
-                        })
+                        body: formData
                     }).then(response => response.json())
                     .then(data => {
                         // Mostrar la respuesta del servidor en el Toast

@@ -9,7 +9,14 @@ class Agenda extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin', 'estado'];
+    protected $fillable = [
+        'titulo',
+        'descripcion',
+        'fecha_inicio',
+        'fecha_fin',
+        'estado',
+        'adjunto'
+    ];
 
     protected static function booted()
     {

@@ -141,7 +141,47 @@
                         </div>
 
                         
-                        <a class="btn bg-gradient-light" href="/mantenimiento">Regresar</a>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row mt-4">
+<!-- Archivos Adjuntos -->
+                <div class="col-lg-12 mb-lg-0 mb-4">
+                    <div class="card z-index-2 h-100">
+                        <div class="card-header d-flex justify-content-center align-items-center" style="background-color: #E1DDC1; color: #000000; padding: 0.5rem;">
+                            Archivos Adjuntos y Fotos
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="d-flex flex-wrap justify-content-center" style="gap: 15px;">
+                                @if($ordenTrabajo->adjuntos)
+                                    @php
+                                        $archivos = json_decode($ordenTrabajo->adjuntos, true);
+                                    @endphp
+                                    @if(is_array($archivos) && count($archivos) > 0)
+                                        @foreach($archivos as $archivo)
+                                            <div class="border rounded p-1 text-center" style="width: 150px;">
+                                                @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $archivo))
+                                                    <img src="/storage/{{ $archivo }}" style="width: 100%; height: 120px; object-fit: cover;" class="rounded img-thumbnail">
+                                                @else
+                                                    <div class="d-flex align-items-center justify-content-center bg-light rounded mb-2" style="height: 120px;">
+                                                        <a href="/storage/{{ $archivo }}" target="_blank" style="font-size: 40px; text-decoration: none;">📄</a>
+                                                    </div>
+                                                    <a href="/storage/{{ $archivo }}" target="_blank" class="btn btn-sm btn-info w-100 mb-0">Ver PDF</a>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <p class="text-muted w-100 text-center">No hay archivos adjuntos.</p>
+                                    @endif
+                                @else
+                                    <p class="text-muted w-100 text-center">No hay archivos adjuntos.</p>
+                                @endif
+                            </div>
+                        </div>
+
+                        <a class="btn bg-gradient-light m-3" href="/mantenimiento">Regresar</a>
                     </div>
                 </div>
 

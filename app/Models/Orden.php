@@ -53,6 +53,6 @@ class Orden extends Model
 
     public function firmas()
     {
-        return $this->hasMany(Firma::class, 'id_orden_trabajo', 'id_orden_trabajo');
+        return $this->hasMany(Firma::class, 'orden_id', 'id_orden_trabajo');
     }
 }
