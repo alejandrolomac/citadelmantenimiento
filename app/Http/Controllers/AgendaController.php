@@ -139,7 +139,7 @@ class AgendaController extends Controller
                     'end' => $evento->fecha_fin,
                     'description' => $evento->descripcion,
                     'unidades' => $evento->unidades->pluck('id_unidad')->toArray(),
-                    'adjunto' => $evento->adjunto ? asset('archivos/' . $evento->adjunto) : null,
+                    'adjunto' => $evento->adjunto ? '/storage/' . $evento->adjunto : null,
                 ];
             })
         );

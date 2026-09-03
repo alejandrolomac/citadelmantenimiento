@@ -6,45 +6,47 @@
         @include('components.alert')
     </div>
     <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="card shadow-lg">
                     <form role="form" method="POST" action="" enctype="multipart/form-data">
                         @csrf
                         <div class="card-header pb-0">
                             <div class="d-flex align-items-center">
-                                <p class="mb-0">Editar Perfil</p>
-                                <button type="button" class="btn btn-primary btn-sm ms-auto" onclick="changePassword()">Guardar</button>
+                                <p class="mb-0 text-bold text-lg">Mi Perfil</p>
+                                <button type="button" class="btn btn-primary btn-sm ms-auto mb-0" onclick="changePassword()">Guardar Cambios</button>
                             </div>
                         </div>
                         <div class="card-body">
-                            <p class="text-uppercase text-sm">Infomación de Usuario</p>
+                            <p class="text-uppercase text-sm text-muted">Información de Usuario</p>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Nombre</label>
+                                        <label class="form-control-label">Nombre</label>
                                         <input class="form-control" type="text" name="username" value="{{ Auth::user()->name }}" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Email</label>
+                                        <label class="form-control-label">Email</label>
                                         <input class="form-control" type="email" name="email" value="{{ Auth::user()->email }}" readonly>
                                     </div>
                                 </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-control-label">Rol Asignado</label>
+                                        <input class="form-control" type="text" value="{{ Auth::user()->roles->first()->name ?? 'Sin Rol' }}" readonly>
+                                    </div>
+                                </div>
                             </div>
-                            <hr class="horizontal dark">
-                            <p class="text-uppercase text-sm">Cambiar Contraseña</p>
+                            <hr class="horizontal dark mt-4 mb-4">
+                            <p class="text-uppercase text-sm text-muted">Seguridad</p>
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Contraseña</label>
-                                        
-
-
-
+                                        <label class="form-control-label">Nueva Contraseña</label>
                                         <div class="position-relative">
-                                                <input class="form-control" type="password" id="passwordPerfil" aria-label="Password" oninput="validatePassword(this.value)" placeholder="Contraseña" value="">
+                                            <input class="form-control" type="password" id="passwordPerfil" aria-label="Password" oninput="validatePassword(this.value)" placeholder="Escriba su nueva contraseña" value="">
 
                                             <button class="position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0"
                                                 type="button" onclick="togglePassword('passwordPerfil', this)"
@@ -62,46 +64,14 @@
                                                 </span>
                                             </button>
                                         </div>
-
-
-
-                                        <div class="alert alert-danger mb-1" role="alert" id="password-error-alert"
-                                style="color: white; display: none;">
-                                <span id="password-error" style="color: white;"></span>
-                            </div>
+                                        <div class="alert alert-danger mt-2 mb-1 py-2 text-sm text-white" role="alert" id="password-error-alert" style="display: none;">
+                                            <span id="password-error"></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </form>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card card-profile">
-                    <img src="/img/bg2.jpg" alt="Image placeholder" class="card-img-top">
-                    <div class="row justify-content-center">
-                        <div class="col-4 col-lg-4 order-lg-2">
-                            <div class="mt-n4 mt-lg-n6 mb-4 mb-lg-0">
-                                <a href="javascript:;">
-                                    <img src="{{ asset('storage/users/' . (Auth::user()->foto ?? 'user.png')) }}"
-                                        class="rounded-circle img-fluid border border-2 border-white">
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body pt-0">
-                        <div class="text-center mt-4">
-                            <h5>
-                                {{ Auth::user()->name }}
-                            </h5>
-                            <div class="h6 font-weight-300">
-                                <i class="ni location_pin mr-2"></i>{{ Auth::user()->email }}
-                            </div>
-                            <div>
-                                <i class="ni education_hat mr-2"></i>{{ Auth::user()->roles->first()->name ?? 'Sin Rol' }}
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

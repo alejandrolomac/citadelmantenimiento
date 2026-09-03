@@ -148,9 +148,11 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary2">
-                <h5 class="modal-title" style="color: #ffffff" id="modalTitle">Incidencia</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                </button>
+                <h5 class="modal-title" style="color: #ffffff" id="modalTitleVer">Incidencia</h5>
+                <div>
+                    <button type="button" id="resolveIncidenciaBtn" class="btn btn-success btn-sm mb-0 me-2" title="Resolver con Mantenimiento"><i class="fa-solid fa-wrench"></i> Resolver</button>
+                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close" style="opacity: 1;"></button>
+                </div>
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
@@ -160,9 +162,9 @@
                             <th class="text-center" colspan="3">Información de la Unidad:</th>
                             </tr>
                             <tr class="text-center">
-                            <th>Código de vehiculo:</th>
-                            <th>Vehiculo:</th>
-                            <th>Folio</th>
+                            <th>Nombre del Dispositivo:</th>
+                            <th>Tipo:</th>
+                            <th>TB ID:</th>
                             </tr>
                             <tr class="text-center">
                             <td id="celCodigo">N/A</td>
@@ -206,12 +208,14 @@
         <div class="card mb-4">
             <div class="card-header pb-0 d-flex justify-content-between align-items-center">
                 <h6>Incidencias</h6>
-                @can('Crear Incidencias')
-                    <button type="button" class="btn bg-gradient-success" onclick="showCreateIncidenciaModal()"
-                        title="Crear Incidencia">
-                        <i class="fa-solid fa-plus"></i>&nbsp;&nbsp;Nueva Incidencia
-                    </button>
-                @endcan
+                <div class="d-flex align-items-center">
+                    @can('Crear Incidencias')
+                        <button type="button" class="btn bg-gradient-success mb-0" onclick="showCreateIncidenciaModal()"
+                            title="Crear Incidencia">
+                            <i class="fa-solid fa-plus"></i>&nbsp;&nbsp;Nueva Incidencia
+                        </button>
+                    @endcan
+                </div>
             </div>
             <div class="card-body px-0 pt-0 pb-2">
                 <div class="table-responsive p-0">
@@ -232,6 +236,18 @@
                         <tbody>
                         </tbody>
                     </table>
+                    
+                    <!-- Contenedor oculto del filtro que será movido por JavaScript -->
+                    <span id="customStatusFilter" style="display: none; margin-left: 15px;" class="text-sm font-weight-normal">
+                        Estatus: 
+                        <select id="filtroEstatus" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                            <option value="">Todos</option>
+                            <option value="Abierta">Abierta</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Cerrada">Cerrada</option>
+                        </select>
+                    </span>
+
                 </div>
             </div>
         </div>
@@ -332,10 +348,25 @@
             ],
             language: {
                 "url": "assets/js/plugins/es-ES.json"
+            },
+            initComplete: function() {
+                // Forzar la inyección del filtro mediante setInterval por si la plantilla reconstruye el DOM
+                let checkExist = setInterval(function() {
+                    let container = $('.dataTables_length, .dataTable-dropdown, .dt-length').first();
+                    if (container.length) {
+                        $('#customStatusFilter').appendTo(container).show();
+                        container.css({'display': 'flex', 'align-items': 'center'});
+                        clearInterval(checkExist);
+                    }
+                }, 200);
+
+                $('#filtroEstatus').on('change', function() {
+                    let val = $(this).val();
+                    $('#tableIncidencias').DataTable().column(4).search(val ? '^' + val + '$' : '', true, false).draw();
+                });
             }
         });
     });
-
 
     function showViewIncidencia(id) {
 
@@ -349,11 +380,15 @@
             .then(data => {
 
                 console.log(data);
-                let photoUrl = data.usuario.foto ? `/storage/users/${data.usuario.foto}` : '/storage/users/user.png';
+                let photoUrl = (data.usuario && data.usuario.foto) ? `/storage/users/${data.usuario.foto}` : '/storage/users/user.png';
+                
+                let unidadNombre = data.unidad ? data.unidad.nombre : 'N/A';
+                let unidadTipo = data.unidad ? data.unidad.type : 'N/A';
+                let unidadFolio = data.unidad ? data.unidad.tb_id : 'N/A';
 
-                document.querySelector("#celCodigo").innerHTML = data.unidad.nombre;
-                document.querySelector("#celVehiculo").innerHTML = data.unidad.type;
-                document.querySelector("#celFolio").innerHTML = data.unidad.tb_id;
+                document.querySelector("#celCodigo").innerHTML = unidadNombre;
+                document.querySelector("#celVehiculo").innerHTML = unidadTipo;
+                document.querySelector("#celFolio").innerHTML = unidadFolio;
                 document.querySelector("#celIncidencia").innerHTML = '<p>' + data.descripcion + '</p>';
                 document.querySelector("#celConductor").innerHTML = data.reportado_por || (data.usuario ? data.usuario.name : 'Desconocido');
                 if(data.usuario && data.usuario.foto) {
@@ -361,10 +396,22 @@
                 } else {
                     document.querySelector("#celImg").innerHTML = '';
                 }
-                        // Inicializar Fancybox
-            Fancybox.bind('[data-fancybox="single"]', {
-                groupAttr: false,
-            });
+                // Inicializar Fancybox
+                Fancybox.bind('[data-fancybox="single"]', {
+                    groupAttr: false,
+                });
+                
+                // Configurar botón Resolver
+                document.getElementById('resolveIncidenciaBtn').onclick = function() {
+                    let base_url = '/orden';
+                    let desc = encodeURIComponent('Resolución de Incidencia #' + data.id + ':\n' + data.descripcion);
+                    let params = '?incidencia_id=' + data.id + '&detalles=' + desc;
+                    if (data.unidad_id) {
+                        params += '&unidad_id=' + data.unidad_id;
+                    }
+                    window.location.href = base_url + params;
+                };
+
                 $('#VerIncidencia').modal('show');
             })
             .catch(error => console.error('Error:', error));

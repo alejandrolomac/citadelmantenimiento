@@ -23,36 +23,49 @@
 
     <div class="modal fade" id="mantenimientoModal" tabindex="-1" role="dialog" aria-labelledby="modalTitulo"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalTitulo">Programar Mantenimiento</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                    <button type="button" id="deleteBtn" class="btn btn-danger ms-2" style="display: none;"><i class="fa-regular fa-trash-can"></i></button>
+                    <button type="button" id="deleteBtn" class="btn btn-danger ms-2" style="display: none;" title="Eliminar Mantenimiento Programado"><i class="fa-regular fa-trash-can"></i></button>
+                    <button type="button" id="doMaintenanceBtn" class="btn btn-success ms-2" style="display: none;" title="Hacer Mantenimiento"><i class="fa-solid fa-wrench"></i> Hacer Mantenimiento</button>
                 </div>
                 <div class="modal-body">
-                    <label for="titulo">Título</label>
-                    <input type="text" id="titulo" class="form-control" placeholder="Escriba un Titulo">
+                    <div class="mb-3">
+                        <label for="titulo">Título</label>
+                        <input type="text" id="titulo" class="form-control" placeholder="Escriba un Titulo">
+                    </div>
 
-                    <label for="descripcion">Descripción</label>
-                    <textarea id="descripcion" class="form-control" placeholder="Escriba una descripción..."></textarea>
+                    <div class="mb-3">
+                        <label for="descripcion">Descripción</label>
+                        <textarea id="descripcion" class="form-control" placeholder="Escriba una descripción..."></textarea>
+                    </div>
 
-                    <label for="fecha_inicio">Fecha Inicio</label>
-                    <input type="datetime-local" id="fecha_inicio" class="form-control">
+                    <div class="mb-3">
+                        <label for="fecha_inicio">Fecha Inicio</label>
+                        <input type="datetime-local" id="fecha_inicio" class="form-control">
+                    </div>
 
-                    <label for="fecha_fin">Fecha Fin</label>
-                    <input type="datetime-local" id="fecha_fin" class="form-control">
+                    <div class="mb-3">
+                        <label for="fecha_fin">Fecha Fin</label>
+                        <input type="datetime-local" id="fecha_fin" class="form-control">
+                    </div>
 
-                    <label for="unidades">Unidad</label>
-                    <select id="unidades" class="form-control" multiple="multiple" placeholder="Elija una unidad">
-                    </select>
+                    <div class="mb-3">
+                        <label for="unidades">Unidad</label>
+                        <select id="unidades" class="form-control" multiple="multiple" placeholder="Elija una unidad" style="width: 100%;">
+                        </select>
+                    </div>
 
-                    <label class="mt-2" for="adjunto">Archivo Adjunto (Opcional)</label>
-                    <input type="file" id="adjunto" class="form-control" accept="image/*,.pdf">
-                    <div id="adjunto_container" class="mt-2" style="display: none;">
-                        <a href="#" id="adjunto_link" target="_blank" class="btn btn-sm btn-info mb-0">Ver Archivo Adjunto</a>
+                    <div class="mb-3">
+                        <label for="adjunto">Archivo Adjunto (Opcional)</label>
+                        <input type="file" id="adjunto" class="form-control" accept="image/*,.pdf">
+                        <div id="adjunto_container" class="mt-2" style="display: none;">
+                            <a href="#" id="adjunto_link" target="_blank" class="btn btn-sm btn-info mb-0">Ver Archivo Adjunto</a>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -150,6 +163,8 @@
 
                     $('#unidades').val(null).trigger('change');
                     document.getElementById('saveBtn').setAttribute('data-id', '');
+                    document.getElementById('deleteBtn').style.display = 'none';
+                    document.getElementById('doMaintenanceBtn').style.display = 'none';
 
                     // Cargar unidades desde el servidor
                     $.ajax({
@@ -197,8 +212,20 @@
                         document.getElementById('adjunto_link').href = '#';
                     }
 
-                    // Mostrar el botón de eliminación solo cuando se edite un mantenimiento
+                    // Mostrar el botón de eliminación y hacer mantenimiento solo cuando se edite un mantenimiento
                     document.getElementById('deleteBtn').style.display = 'inline-block';
+                    document.getElementById('doMaintenanceBtn').style.display = 'inline-block';
+                    
+                    document.getElementById('doMaintenanceBtn').onclick = function() {
+                        let base_url = '/orden';
+                        let desc = encodeURIComponent(evento.title + '\n' + (evento.extendedProps.description || ''));
+                        // Si hay unidades seleccionadas, pasamos la primera para pre-seleccionar
+                        let params = '?detalles=' + desc;
+                        if (evento.extendedProps.unidades && evento.extendedProps.unidades.length > 0) {
+                            params += '&unidad_id=' + evento.extendedProps.unidades[0];
+                        }
+                        window.location.href = base_url + params;
+                    };
 
                     // Cargar unidades desde el servidor y seleccionarlas en el select
                     $.ajax({

@@ -19,6 +19,7 @@
         @csrf
         <fieldset>
             <input type="hidden" id="formulario_json" name="formulario_json" value="" />
+            <input type="hidden" id="incidencia_id" name="incidencia_id" value="{{ request('incidencia_id') }}" />
 
             <div class="row">
                 <div class="col-12 mb-3 mt-3">
@@ -36,7 +37,7 @@
                     <select id="unidad" name="unidad" class="form-select select2-dispositivo mb-0" required style="width: 100%;">
                         <option value="" disabled selected hidden>Seleccione Dispositivo</option>
                         @foreach ($unidades as $unidad)
-                            <option value="{{ $unidad->id_unidad }}" data-tbid="{{ $unidad->tb_id }}" data-tipo="{{ $unidad->type }}" data-fecha="{{ $unidad->fecha }}">{{ $unidad->nombre }} {{ $unidad->type }} - {{ $unidad->tb_id }}</option>
+                            <option value="{{ $unidad->id_unidad }}" data-tbid="{{ $unidad->tb_id }}" data-tipo="{{ $unidad->type }}" data-fecha="{{ $unidad->fecha }}" {{ request('unidad_id') == $unidad->id_unidad ? 'selected' : '' }}>{{ $unidad->nombre }} {{ $unidad->type }} - {{ $unidad->tb_id }}</option>
                         @endforeach
                     </select>
 
@@ -65,7 +66,7 @@
             <div class="row mt-5">
                 <div class="col-12 mb-3">
                     <label for="detalles" class="form-label">Detalles del Trabajo Realizado</label>
-                    <textarea id="detalles" name="detalles" class="form-control" rows="10" placeholder="Describa todo el trabajo realizado en la unidad..." required></textarea>
+                    <textarea id="detalles" name="detalles" class="form-control" rows="10" placeholder="Describa todo el trabajo realizado en la unidad..." required>{{ request('detalles') }}</textarea>
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label" for="adjuntos_input">Archivos Adjuntos / Fotos (Opcional)</label>
@@ -96,10 +97,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if(unidadSelect) {
         $(unidadSelect).on('change', function() {
             var selected = this.options[this.selectedIndex];
-            document.getElementById('folio').textContent = selected.getAttribute('data-tbid') || '----';
-            document.getElementById('codigo').textContent = selected.getAttribute('data-tipo') || '----';
-            document.getElementById('ubicacion').textContent = selected.getAttribute('data-fecha') || '----';
+            if(selected) {
+                document.getElementById('folio').textContent = selected.getAttribute('data-tbid') || '----';
+                document.getElementById('codigo').textContent = selected.getAttribute('data-tipo') || '----';
+                document.getElementById('ubicacion').textContent = selected.getAttribute('data-fecha') || '----';
+            }
         });
+        
+        // Disparar el evento change si hay un valor pre-seleccionado
+        if(unidadSelect.value) {
+            $(unidadSelect).trigger('change');
+        }
     }
 
     const adjuntosInput = document.getElementById('adjuntos_input');

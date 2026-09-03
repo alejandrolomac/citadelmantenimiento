@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Str;
+use App\Models\Incidencia;
 
 class OrdenController extends Controller
 {
@@ -43,6 +44,14 @@ class OrdenController extends Controller
         }
 
         $orden->save();
+
+        if ($request->filled('incidencia_id')) {
+            $incidencia = Incidencia::find($request->incidencia_id);
+            if ($incidencia) {
+                $incidencia->status = 'Cerrada';
+                $incidencia->save();
+            }
+        }
 
         return redirect()->route('orden.completar', ['id' => $orden->id_orden_trabajo]);
     }
