@@ -111,14 +111,18 @@ class OrdenController extends Controller
         // Eliminar archivos indicados
         if ($request->has('eliminar_archivos')) {
             $eliminar = $request->input('eliminar_archivos');
-            foreach ($eliminar as $delPath) {
-                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($delPath)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($delPath);
+            if (is_array($eliminar)) {
+                foreach ($eliminar as $delPath) {
+                    if ($delPath && is_string($delPath)) {
+                        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($delPath)) {
+                            \Illuminate\Support\Facades\Storage::disk('public')->delete($delPath);
+                        }
+                        // Remover de $viejosArchivos
+                        $viejosArchivos = array_filter($viejosArchivos, function($path) use ($delPath) {
+                            return $path !== $delPath;
+                        });
+                    }
                 }
-                // Remover de $viejosArchivos
-                $viejosArchivos = array_filter($viejosArchivos, function($path) use ($delPath) {
-                    return $path !== $delPath;
-                });
             }
         }
 

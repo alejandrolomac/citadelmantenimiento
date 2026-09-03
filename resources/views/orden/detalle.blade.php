@@ -161,16 +161,18 @@
                                     @endphp
                                     @if(is_array($archivos) && count($archivos) > 0)
                                         @foreach($archivos as $archivo)
-                                            <div class="border rounded p-1 text-center" style="width: 150px;">
-                                                @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $archivo))
-                                                    <img src="/storage/{{ $archivo }}" style="width: 100%; height: 120px; object-fit: cover;" class="rounded img-thumbnail">
-                                                @else
-                                                    <div class="d-flex align-items-center justify-content-center bg-light rounded mb-2" style="height: 120px;">
-                                                        <a href="/storage/{{ $archivo }}" target="_blank" style="font-size: 40px; text-decoration: none;">📄</a>
-                                                    </div>
-                                                    <a href="/storage/{{ $archivo }}" target="_blank" class="btn btn-sm btn-info w-100 mb-0">Ver PDF</a>
-                                                @endif
-                                            </div>
+                                            @if($archivo && trim($archivo) !== '')
+                                                <div class="border rounded p-1 text-center" style="width: 150px;">
+                                                    @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $archivo))
+                                                        <img src="/storage/{{ $archivo }}" style="width: 100%; height: 120px; object-fit: cover;" class="rounded img-thumbnail">
+                                                    @else
+                                                        <div class="d-flex align-items-center justify-content-center bg-light rounded mb-2" style="height: 120px;">
+                                                            <a href="/storage/{{ $archivo }}" target="_blank" style="font-size: 40px; text-decoration: none;">📄</a>
+                                                        </div>
+                                                        <a href="/storage/{{ $archivo }}" target="_blank" class="btn btn-sm btn-info w-100 mb-0">Ver PDF</a>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         @endforeach
                                     @else
                                         <p class="text-muted w-100 text-center">No hay archivos adjuntos.</p>

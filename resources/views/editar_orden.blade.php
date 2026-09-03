@@ -72,6 +72,7 @@
                                 <p class="mb-1 text-sm font-weight-bold">Archivos actuales (haz click en la X para eliminar):</p>
                                 <div class="d-flex flex-wrap mt-2" style="gap: 10px;">
                                 @foreach($archivos as $index => $archivo)
+                                    @if($archivo && trim($archivo) !== '')
                                     <div class="position-relative border p-1 rounded d-flex flex-column align-items-center justify-content-center existing-file" style="width: 100px; height: 100px; overflow: hidden;">
                                         @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $archivo))
                                             <img src="/storage/{{ $archivo }}" style="width: 100%; height: 100%; object-fit: cover;" class="rounded">
@@ -85,6 +86,7 @@
                                         </button>
                                         <div class="text-truncate w-100 text-center mt-1" style="font-size: 10px; position: absolute; bottom: 0; background: rgba(255,255,255,0.8);" title="Archivo {{ $index + 1 }}">Archivo {{ $index + 1 }}</div>
                                     </div>
+                                    @endif
                                 @endforeach
                                 </div>
                             </div>
