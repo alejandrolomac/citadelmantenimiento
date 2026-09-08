@@ -45,13 +45,31 @@ class OrdenController extends Controller
 
         $orden->save();
 
+        $formularioData = [];
+
         if ($request->filled('incidencia_id')) {
             $incidencia = Incidencia::find($request->incidencia_id);
             if ($incidencia) {
+                $formularioData['reporte_recibido'] = $incidencia->descripcion;
+                
                 $incidencia->status = 'Cerrada';
                 $incidencia->save();
             }
         }
+
+        if ($request->filled('agenda_id')) {
+            $agenda = \App\Models\Agenda::find($request->agenda_id);
+            if ($agenda) {
+                $formularioData['reporte_recibido'] = $agenda->descripcion;
+                $formularioData['reporte_adjuntos'] = $agenda->adjuntos;
+
+                $agenda->estado = 0; // 0 significa Realizado/Inactivo
+                $agenda->save();
+            }
+        }
+        
+        $orden->formulario = json_encode($formularioData);
+        $orden->save();
 
         return redirect()->route('orden.completar', ['id' => $orden->id_orden_trabajo]);
     }
@@ -60,6 +78,7 @@ class OrdenController extends Controller
     {
         $ordenes = Orden::select('orden_trabajo.*', 'unidad.nombre', 'unidad.type')
             ->join('unidad', 'orden_trabajo.id_unidad', '=', 'unidad.id_unidad')
+            ->orderBy('orden_trabajo.created_at', 'desc')
             ->get();
 
         $data = $ordenes->map(function ($orden) {
@@ -68,7 +87,7 @@ class OrdenController extends Controller
                 'nombre' => $orden->nombre,
                 'type' => $orden->type,
                 'no_orden' => $orden->no_orden,
-                'fecha' => $orden->fecha,
+                'fecha' => \Carbon\Carbon::parse($orden->fecha)->format('Y-m-d') . ' ' . ($orden->created_at ? $orden->created_at->format('H:i') : ''),
             ];
         });
 
@@ -178,6 +197,10 @@ class OrdenController extends Controller
 
         $qrCode = base64_encode(QrCode::format('svg')->size(150)->generate(url("/orden/{$id_orden_trabajo}/detalle")));
 
+        $formulario = json_decode($ordenTrabajo->formulario, true) ?? [];
+        $reporteRecibido = $formulario['reporte_recibido'] ?? null;
+        $reporteAdjuntos = $formulario['reporte_adjuntos'] ?? null;
+
         $data = [
             'no_orden' => $ordenTrabajo->no_orden,
             'tecnico' => $ordenTrabajo->tecnico,
@@ -189,8 +212,8 @@ class OrdenController extends Controller
             'kilometraje' => $ordenTrabajo->kilometraje,
             'tb_id' => $unidad->tb_id,
             'nombre' => $unidad->nombre,
-            
-            
+            'reporte_recibido' => $reporteRecibido,
+            'reporte_adjuntos' => $reporteAdjuntos,
             'detalles' => $ordenTrabajo->detalles,
             'qrCode' => $qrCode,
             'firmaTecnico' => $firmaTecnicoPath,
@@ -271,6 +294,11 @@ class OrdenController extends Controller
         $orden = Orden::find($id);
         $unidad = Unidad::find($orden->id_unidad);
 
+        $formulario = json_decode($orden->formulario, true) ?? [];
+        $trabajosRealizados = isset($formulario['reporte_recibido']) ? [] : $formulario;
+        $reporteRecibido = $formulario['reporte_recibido'] ?? null;
+        $reporteAdjuntos = $formulario['reporte_adjuntos'] ?? null;
+
         $data = [
             'id_orden_trabajo' => $orden->id_orden_trabajo,
             'no_orden' => $orden->no_orden,
@@ -284,7 +312,9 @@ class OrdenController extends Controller
             'type' => $unidad->type,
             'tb_id' => $unidad->tb_id,
             'nombre' => $unidad->nombre,
-            'trabajos_realizados' => json_decode($orden->formulario, true) ?? [],
+            'trabajos_realizados' => $trabajosRealizados,
+            'reporte_recibido' => $reporteRecibido,
+            'reporte_adjuntos' => $reporteAdjuntos,
             'detalles' => $orden->detalles,
             'adjuntos' => $orden->adjuntos,
         ];

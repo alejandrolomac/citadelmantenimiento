@@ -15,7 +15,7 @@ class Agenda extends Model
         'fecha_inicio',
         'fecha_fin',
         'estado',
-        'adjunto'
+        'adjuntos'
     ];
 
     protected static function booted()

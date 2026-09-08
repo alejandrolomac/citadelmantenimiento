@@ -88,6 +88,12 @@
             background-color: #373e44;
             border-color: #373e44;
         }
+
+        .header-table,
+        .header-table th,
+        .header-table td {
+            border: none !important;
+        }
     </style>
     <div class="container-fluid py-4">
         <div class="row mt-4 mx-4">
@@ -95,43 +101,73 @@
                 <div class="card mb-4">
                     <div class="card-body px-0 pt-0 pb-2">
 
-                        <table>
-                            <tr>
-                                <td>
+                        <div class="p-4">
 
                                     <div class="table-responsive p-2">
                                         <h2>Orden de Trabajo: {{ $no_orden }}</h2>
-                                        <table class="mb-3">
+                                        <table class="mb-3 header-table">
                                             <tr>
                                                 <td><strong>Técnico:</strong> {{ $tecnico }}</td>
-                                                <td><strong>Hora de Inicio:</strong> {{ $hora_inicio }}</td>
                                             </tr>
                                             <tr>
                                                 <td><strong>Fecha:</strong> {{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</td>
-                                                <td><strong>Hora de Finalización:</strong> {{ $hora_final }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2"><strong>Ubicación:</strong> {{ $unidad }}</td>
                                             </tr>
                                         </table>
                                     </div>
-                                    <h3>Información de la Unidad</h3>
+                                    <h3>Información del Dispositivo</h3>
                                     <div class="table-responsive p-2">
                                         <table class="mb-3">
                                             <tr>
-                                                <td><strong>Unidad:</strong> {{ $type }}</td>
-                                                <td><strong>Conductor:</strong> {{ $conductor }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Nombre de Máquina/Unidad:</strong> {{ $nombre }}</td>
+                                                <td><strong>Dispositivo:</strong> {{ $type }}</td>
                                                 <td><strong>TB ID:</strong> {{ $tb_id }}</td>
                                             </tr>
                                             <tr>
-                                                <td><strong>Fecha:</strong> {{ $fecha }}</td>
-                                                <td> {{ $kilometraje }}</td>
+                                                <td><strong>Nombre del Dispositivo:</strong> {{ $nombre }}</td>
+                                                <td><strong>Kilometraje / Horas:</strong> {{ $kilometraje }}</td>
                                             </tr>
                                         </table>
                                     </div>
+                                    @if(!empty($reporte_recibido) || !empty($reporte_adjuntos))
+                                    <h3>Reporte Recibido</h3>
+                                    <div class="table-responsive p-2">
+                                        <table class="mb-3">
+                                            <tr>
+                                                <td>
+                                                    @if(!empty($reporte_recibido))
+                                                        <p style="white-space: pre-line; margin-bottom: 0;">{{ $reporte_recibido }}</p>
+                                                    @endif
+                                                    
+                                                    @if(!empty($reporte_adjuntos))
+                                                        @php
+                                                            $archivos = json_decode($reporte_adjuntos, true);
+                                                        @endphp
+                                                        @if(is_array($archivos) && count($archivos) > 0)
+                                                            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                                                                @foreach($archivos as $archivo)
+                                                                    @php
+                                                                        $ext = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
+                                                                        $isImage = in_array($ext, ['jpeg', 'jpg', 'png', 'gif']);
+                                                                    @endphp
+                                                                    <div style="border: 1px solid #ddd; padding: 5px; border-radius: 5px; width: 120px; text-align: center;">
+                                                                        @if($isImage)
+                                                                            <img src="/storage/{{ $archivo }}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px;">
+                                                                        @else
+                                                                            <div style="height: 100px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 4px;">
+                                                                                <a href="/storage/{{ $archivo }}" target="_blank" style="font-size: 30px; text-decoration: none;">📄</a>
+                                                                            </div>
+                                                                            <a href="/storage/{{ $archivo }}" target="_blank" class="btn btn-sm btn-info w-100 mt-2 mb-0 py-1" style="font-size: 10px;">Ver PDF</a>
+                                                                        @endif
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    @endif
+                                    
                                     <h3>Trabajo Realizado</h3>
                                     <div class="table-responsive p-2">
                                         <table class="mb-3">
@@ -186,9 +222,7 @@
                                     </div>
 
 
-                                </td>
-                            </tr>
-                        </table>
+                        </div>
                     </div>
                 </div>
             </div>

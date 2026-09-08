@@ -349,7 +349,7 @@
                         render: function(data, type, row) {
                             return `
                     <a class="btn btn-view" href="/orden/${row.id_orden_trabajo}/detalle" alt="Ver Orden"><i class="fa-regular fa-eye"></i></a>
-                        <button class="btn btn-export" onclick="showExportModal(${row.id_orden_trabajo})" alt="Exportar"><i class="fa-solid fa-file-export"></i></button>
+                        <button class="btn btn-info" onclick="imprimirOrdenDirecto(${row.id_orden_trabajo})" alt="Imprimir" title="Imprimir"><i class="fa-solid fa-print"></i></button>
                         <a href="/orden/${row.id_orden_trabajo}/editar" class="btn btn-warning" alt="Editar">
                             <i class="fa-regular fa-pen-to-square"></i>
                         </a>
@@ -452,6 +452,10 @@
         function mantImprimir(event) {
             event.preventDefault(); // Evita la recarga de la página
             const id_orden_trabajo = event.target.dataset.id;
+            imprimirOrdenDirecto(id_orden_trabajo);
+        }
+
+        function imprimirOrdenDirecto(id_orden_trabajo) {
             fetch(`/orden/${id_orden_trabajo}/exportar-pdf?view=true`)
                 .then(response => {
                     if (!response.ok) {

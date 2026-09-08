@@ -364,6 +364,13 @@
                     let val = $(this).val();
                     $('#tableIncidencias').DataTable().column(4).search(val ? '^' + val + '$' : '', true, false).draw();
                 });
+
+                // Auto-abrir incidencia si viene en la URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const showIncidenciaId = urlParams.get('show_incidencia');
+                if (showIncidenciaId) {
+                    showViewIncidencia(showIncidenciaId);
+                }
             }
         });
     });

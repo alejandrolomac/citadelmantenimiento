@@ -77,19 +77,16 @@ Route::middleware(['auth'])->group(function () {
 
     // Reportes    
     Route::view('/reportes', 'pages.reportes')->name('reportes')->middleware('can:Ver Reportes');
-    Route::get('/reportes/prev/chart-data', [ReportesController::class, 'cantMantPreventivo'])->middleware('can:Ver Reportes');
-    Route::get('/reportes/chart-data', [ReportesController::class, 'chartData'])->middleware('can:Ver Reportes');
-    Route::get('/reportes/tecnicosPreventivos', [ReportesController::class, 'getMantTecnicosPreventivo'])->middleware('can:Ver Reportes');
-    Route::get('/reportes/tecnicosCorrectivos', [ReportesController::class, 'getMantTecnicosCorrectivo'])->middleware('can:Ver Reportes');
-    //Route::get('/reporte/mantenimiento/data', [ReportesController::class, 'getMantenimientos']);
-    Route::get('/reporte/mantTablePrev/data', [ReportesController::class, 'obtenerMantenimientoPrev'])->middleware('can:Ver Reportes');
-    Route::get('/reporte/mantTableCorrec/data', [ReportesController::class, 'obtenerMantenimientoCorrec'])->middleware('can:Ver Reportes');
-    Route::get('/reportes/tipos-mantenimiento', [ReportesController::class, 'tiposMantenimiento'])->middleware('can:Ver Reportes');
-    Route::get('/reportes/kilometraje-mantenimiento', [ReportesController::class, 'kilometrajeMantenimiento'])->middleware('can:Ver Reportes');
-    Route::get('/reportes/informe-inactividad', [ReportesController::class, 'informeInactividad'])->middleware('can:Ver Reportes');
-    Route::get('/reportes/tendencia-mantenimiento', [ReportesController::class, 'tendenciaMantenimiento'])->middleware('can:Ver Reportes');
-    Route::get('/reportes/eficiencia-tecnico', [ReportesController::class, 'eficienciaTecnico'])->middleware('can:Ver Reportes');
-    Route::get('/reportes/resumen-unidad', [ReportesController::class, 'resumenUnidad'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/kpis', [ReportesController::class, 'getKPIs'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/mantenimientos-mensuales', [ReportesController::class, 'getMantenimientosMensuales'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/tipos-mantenimiento', [ReportesController::class, 'getTiposMantenimiento'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/incidencias-mensuales', [ReportesController::class, 'getIncidenciasMensuales'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/incidencias-top-dispositivos', [ReportesController::class, 'getTopDispositivosIncidencias'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/incidencias-comparacion', [ReportesController::class, 'getComparacionIncidencias'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/incidencias-estatus', [ReportesController::class, 'getEstatusIncidencias'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/rendimiento-tecnicos', [ReportesController::class, 'getRendimientoTecnicos'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/tendencia-dispositivos', [ReportesController::class, 'getTendenciaDispositivos'])->middleware('can:Ver Reportes');
+    Route::get('/reportes/resumen-dispositivos', [ReportesController::class, 'getResumenDispositivos'])->middleware('can:Ver Reportes');
 
     // Incidencias
     Route::resource('incidencia', IncidenciaController::class)->middleware('can:Ver Incidencias');
@@ -100,9 +97,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/incidencias-usuarios', [IncidenciaController::class, 'obtenerUsuarios']);
 
     //Orden
-    Route::get('/orden', function () {
+    Route::get('/orden', function (\Illuminate\Http\Request $request) {
         $unidades = \App\Models\Unidad::where('estado', true)->get();
-        return view('home', compact('unidades'));
+        $agenda = $request->has('agenda_id') ? \App\Models\Agenda::find($request->agenda_id) : null;
+        $incidencia = $request->has('incidencia_id') ? \App\Models\Incidencia::find($request->incidencia_id) : null;
+        
+        return view('home', compact('unidades', 'agenda', 'incidencia'));
     })->middleware('can:Crear Mantenimiento');
     Route::get('/ordenes/data', [OrdenController::class, 'getData'])->name('ordenes.data')->middleware('can:Ver Mantenimiento');
 

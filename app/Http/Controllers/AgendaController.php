@@ -24,16 +24,19 @@ class AgendaController extends Controller
             'fecha_inicio' => 'required|date|after_or_equal:today',
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
             'unidades' => 'required',
-            'adjunto' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
+            'adjuntos.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
         ]);
 
         $data = $request->only('titulo', 'descripcion', 'fecha_inicio', 'fecha_fin');
 
-        if ($request->hasFile('adjunto')) {
-            $file = $request->file('adjunto');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('agendas', $filename, 'public');
-            $data['adjunto'] = $path;
+        if ($request->hasFile('adjuntos')) {
+            $archivos = [];
+            foreach ($request->file('adjuntos') as $file) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('agendas', $filename, 'public');
+                $archivos[] = $path;
+            }
+            $data['adjuntos'] = json_encode($archivos);
         }
 
         // Crear el evento de mantenimiento
@@ -71,22 +74,46 @@ class AgendaController extends Controller
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
             'unidades' => 'required',
-            'adjunto' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
+            'adjuntos.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
         ]);
 
         $data = $request->only('titulo', 'descripcion', 'fecha_inicio', 'fecha_fin');
 
-        if ($request->hasFile('adjunto')) {
-            // Eliminar archivo anterior si existe
-            if ($agenda->adjunto && Storage::disk('public')->exists($agenda->adjunto)) {
-                Storage::disk('public')->delete($agenda->adjunto);
+        $viejosArchivos = [];
+        if ($agenda->adjuntos) {
+            $viejos = json_decode($agenda->adjuntos, true);
+            if (is_array($viejos)) {
+                $viejosArchivos = $viejos;
             }
-
-            $file = $request->file('adjunto');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('agendas', $filename, 'public');
-            $data['adjunto'] = $path;
         }
+
+        // Eliminar archivos indicados
+        if ($request->has('eliminar_archivos')) {
+            $eliminar = $request->input('eliminar_archivos');
+            if (is_array($eliminar)) {
+                foreach ($eliminar as $delPath) {
+                    if ($delPath && is_string($delPath)) {
+                        if (Storage::disk('public')->exists($delPath)) {
+                            Storage::disk('public')->delete($delPath);
+                        }
+                        $viejosArchivos = array_filter($viejosArchivos, function($path) use ($delPath) {
+                            return $path !== $delPath;
+                        });
+                    }
+                }
+            }
+        }
+
+        // Agregar nuevos archivos
+        if ($request->hasFile('adjuntos')) {
+            foreach ($request->file('adjuntos') as $file) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('agendas', $filename, 'public');
+                $viejosArchivos[] = $path;
+            }
+        }
+
+        $data['adjuntos'] = json_encode(array_values($viejosArchivos));
 
         // Actualizar los datos del evento de mantenimiento
         $agenda->update($data);
@@ -111,9 +138,16 @@ class AgendaController extends Controller
             // Eliminar las relaciones en agenda_unidad
             DB::table('agenda_unidad')->where('agenda_id', $id)->delete();
 
-            // Eliminar archivo si existe
-            if ($agenda->adjunto && Storage::disk('public')->exists($agenda->adjunto)) {
-                Storage::disk('public')->delete($agenda->adjunto);
+            // Eliminar archivos si existen
+            if ($agenda->adjuntos) {
+                $archivos = json_decode($agenda->adjuntos, true);
+                if (is_array($archivos)) {
+                    foreach ($archivos as $archivo) {
+                        if (Storage::disk('public')->exists($archivo)) {
+                            Storage::disk('public')->delete($archivo);
+                        }
+                    }
+                }
             }
 
             // Eliminar el mantenimiento en la tabla agenda
@@ -139,7 +173,8 @@ class AgendaController extends Controller
                     'end' => $evento->fecha_fin,
                     'description' => $evento->descripcion,
                     'unidades' => $evento->unidades->pluck('id_unidad')->toArray(),
-                    'adjunto' => $evento->adjunto ? '/storage/' . $evento->adjunto : null,
+                    'adjuntos' => $evento->adjuntos ? json_decode($evento->adjuntos, true) : [],
+                    'estado' => $evento->estado
                 ];
             })
         );

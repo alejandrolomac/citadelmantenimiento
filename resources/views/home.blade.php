@@ -20,6 +20,7 @@
         <fieldset>
             <input type="hidden" id="formulario_json" name="formulario_json" value="" />
             <input type="hidden" id="incidencia_id" name="incidencia_id" value="{{ request('incidencia_id') }}" />
+            <input type="hidden" id="agenda_id" name="agenda_id" value="{{ request('agenda_id') }}" />
 
             <div class="row">
                 <div class="col-12 mb-3 mt-3">
@@ -63,10 +64,49 @@
                 </div>
             </div>
 
+            @if(request('detalles') || ($agenda && $agenda->adjuntos))
             <div class="row mt-5">
                 <div class="col-12 mb-3">
+                    <label class="form-label" style="font-weight: bold; color: #fc4b09;">Reporte Recibido</label>
+                    <div class="p-3 bg-light rounded border">
+                        @if(request('detalles'))
+                            <p class="mb-0" style="white-space: pre-wrap;">{{ request('detalles') }}</p>
+                        @endif
+                        
+                        @if($agenda && $agenda->adjuntos)
+                            @php
+                                $archivos = json_decode($agenda->adjuntos, true);
+                            @endphp
+                            @if(is_array($archivos) && count($archivos) > 0)
+                                <div class="mt-3 d-flex flex-wrap gap-2">
+                                    @foreach($archivos as $archivo)
+                                        @php
+                                            $ext = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
+                                            $isImage = in_array($ext, ['jpeg', 'jpg', 'png', 'gif']);
+                                            $archivoUrl = asset('storage/' . $archivo);
+                                        @endphp
+                                        <a href="{{ $archivoUrl }}" target="_blank" style="text-decoration: none;">
+                                            @if($isImage)
+                                                <img src="{{ $archivoUrl }}" class="rounded img-thumbnail" style="height: 100px; width: 100px; object-fit: cover;">
+                                            @else
+                                                <div class="d-flex align-items-center justify-content-center bg-white rounded img-thumbnail" style="height: 100px; width: 100px;">
+                                                    <span style="font-size: 30px;">📄</span>
+                                                </div>
+                                            @endif
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <div class="row mt-4">
+                <div class="col-12 mb-3">
                     <label for="detalles" class="form-label">Detalles del Trabajo Realizado</label>
-                    <textarea id="detalles" name="detalles" class="form-control" rows="10" placeholder="Describa todo el trabajo realizado en la unidad..." required>{{ request('detalles') }}</textarea>
+                    <textarea id="detalles" name="detalles" class="form-control" rows="10" placeholder="Describa todo el trabajo realizado en la unidad..." required>{{ old('detalles') }}</textarea>
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label" for="adjuntos_input">Archivos Adjuntos / Fotos (Opcional)</label>

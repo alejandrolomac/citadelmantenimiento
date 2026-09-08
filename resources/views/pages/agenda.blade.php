@@ -32,6 +32,7 @@
                     </button>
                     <button type="button" id="deleteBtn" class="btn btn-danger ms-2" style="display: none;" title="Eliminar Mantenimiento Programado"><i class="fa-regular fa-trash-can"></i></button>
                     <button type="button" id="doMaintenanceBtn" class="btn btn-success ms-2" style="display: none;" title="Hacer Mantenimiento"><i class="fa-solid fa-wrench"></i> Hacer Mantenimiento</button>
+                    <span id="statusRealizado" class="text-success ms-2 fw-bold" style="display: none; align-self: center;"><i class="fa-solid fa-check-circle"></i> Realizado</span>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -61,11 +62,12 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="adjunto">Archivo Adjunto (Opcional)</label>
-                        <input type="file" id="adjunto" class="form-control" accept="image/*,.pdf">
-                        <div id="adjunto_container" class="mt-2" style="display: none;">
-                            <a href="#" id="adjunto_link" target="_blank" class="btn btn-sm btn-info mb-0">Ver Archivo Adjunto</a>
+                        <label for="adjunto">Archivos Adjuntos (Opcional)</label>
+                        <input type="file" id="adjunto" name="adjuntos[]" class="form-control" accept="image/*,.pdf" multiple>
+                        <div id="adjunto_container" class="mt-2 d-flex flex-wrap gap-3" style="display: none !important;">
+                            <!-- Las miniaturas se inyectarán aquí por JS -->
                         </div>
+                        <div id="eliminar_archivos_container"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -157,7 +159,9 @@
                     document.getElementById('fecha_fin').value = '';
                     document.getElementById('fecha_fin').min = now;
                     document.getElementById('adjunto').value = '';
-                    document.getElementById('adjunto_container').style.display = 'none';
+                    document.getElementById('adjunto_container').innerHTML = '';
+                    document.getElementById('adjunto_container').style.setProperty('display', 'none', 'important');
+                    document.getElementById('eliminar_archivos_container').innerHTML = '';
 
 
 
@@ -165,6 +169,7 @@
                     document.getElementById('saveBtn').setAttribute('data-id', '');
                     document.getElementById('deleteBtn').style.display = 'none';
                     document.getElementById('doMaintenanceBtn').style.display = 'none';
+                    document.getElementById('statusRealizado').style.display = 'none';
 
                     // Cargar unidades desde el servidor
                     $.ajax({
@@ -191,7 +196,7 @@
                     let evento = info.event;
                     let now = new Date().toISOString().slice(0, 16);
 
-                    document.getElementById('modalTitulo').textContent = 'Editar Mantenimiento';
+                    document.getElementById('modalTitulo').textContent = 'Mantenimiento Agendado';
                     document.getElementById('titulo').value = evento.title;
                     document.getElementById('descripcion').value = evento.extendedProps.description ||
                         '';
@@ -203,24 +208,56 @@
                     document.getElementById('fecha_fin').min = now;
                     document.getElementById('saveBtn').setAttribute('data-id', evento.id);
                     document.getElementById('adjunto').value = '';
+                    document.getElementById('adjunto_container').innerHTML = '';
+                    document.getElementById('eliminar_archivos_container').innerHTML = '';
 
-                    if (evento.extendedProps.adjunto) {
-                        document.getElementById('adjunto_container').style.display = 'block';
-                        document.getElementById('adjunto_link').href = evento.extendedProps.adjunto;
+                    if (evento.extendedProps.adjuntos && evento.extendedProps.adjuntos.length > 0) {
+                        document.getElementById('adjunto_container').style.setProperty('display', 'flex', 'important');
+                        
+                        evento.extendedProps.adjuntos.forEach(function(archivo, index) {
+                            let extension = archivo.split('.').pop().toLowerCase();
+                            let isImage = ['jpeg', 'jpg', 'gif', 'png'].includes(extension);
+                            
+                            let archivoUrl = '/storage/' + archivo;
+                            let html = `
+                                <div class="position-relative d-inline-block" id="adjunto_item_${index}">
+                                    <a href="${archivoUrl}" target="_blank" style="text-decoration: none;">
+                                        ${isImage 
+                                            ? `<img src="${archivoUrl}" class="rounded img-thumbnail" style="height: 120px; width: 120px; object-fit: cover;">`
+                                            : `<div class="d-flex align-items-center justify-content-center bg-light rounded img-thumbnail" style="height: 120px; width: 120px;"><span style="font-size: 40px;">📄</span></div>`
+                                        }
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm position-absolute rounded-circle p-1" style="top: -10px; right: -10px; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; z-index: 10;" 
+                                        onclick="eliminarArchivo(event, '${archivo}', 'adjunto_item_${index}')" title="Eliminar">
+                                        <i class="fa-solid fa-times"></i>
+                                    </button>
+                                </div>
+                            `;
+                            document.getElementById('adjunto_container').insertAdjacentHTML('beforeend', html);
+                        });
                     } else {
-                        document.getElementById('adjunto_container').style.display = 'none';
-                        document.getElementById('adjunto_link').href = '#';
+                        document.getElementById('adjunto_container').style.setProperty('display', 'none', 'important');
                     }
 
-                    // Mostrar el botón de eliminación y hacer mantenimiento solo cuando se edite un mantenimiento
-                    document.getElementById('deleteBtn').style.display = 'inline-block';
-                    document.getElementById('doMaintenanceBtn').style.display = 'inline-block';
+                    if (evento.extendedProps.estado === 0 || evento.extendedProps.estado === '0' || evento.extendedProps.estado === false) {
+                        // Cambiar el título a 'Mantenimiento Realizado'
+                        document.getElementById('modalTitulo').innerText = 'Mantenimiento Realizado';
+                        document.getElementById('deleteBtn').style.display = 'none';
+                        document.getElementById('doMaintenanceBtn').style.display = 'none';
+                        document.getElementById('statusRealizado').style.display = 'inline-block';
+                        document.getElementById('saveBtn').style.display = 'inline-block';
+                    } else {
+                        document.getElementById('deleteBtn').style.display = 'inline-block';
+                        document.getElementById('doMaintenanceBtn').style.display = 'inline-block';
+                        document.getElementById('statusRealizado').style.display = 'none';
+                        document.getElementById('saveBtn').style.display = 'inline-block';
+                    }
                     
                     document.getElementById('doMaintenanceBtn').onclick = function() {
                         let base_url = '/orden';
                         let desc = encodeURIComponent(evento.title + '\n' + (evento.extendedProps.description || ''));
                         // Si hay unidades seleccionadas, pasamos la primera para pre-seleccionar
-                        let params = '?detalles=' + desc;
+                        let params = '?detalles=' + desc + '&agenda_id=' + encodeURIComponent(evento.id);
                         if (evento.extendedProps.unidades && evento.extendedProps.unidades.length > 0) {
                             params += '&unidad_id=' + evento.extendedProps.unidades[0];
                         }
@@ -296,10 +333,18 @@
                     formData.append('_method', 'PUT');
                 }
 
-                let adjunto = document.getElementById('adjunto').files[0];
-                if (adjunto) {
-                    formData.append('adjunto', adjunto);
+                let adjuntosFiles = document.getElementById('adjunto').files;
+                if (adjuntosFiles.length > 0) {
+                    for (let i = 0; i < adjuntosFiles.length; i++) {
+                        formData.append('adjuntos[]', adjuntosFiles[i]);
+                    }
                 }
+
+                // Agregar los archivos a eliminar si los hay
+                let inputsEliminar = document.querySelectorAll('input[name="eliminar_archivos[]"]');
+                inputsEliminar.forEach(input => {
+                    formData.append('eliminar_archivos[]', input.value);
+                });
 
                 fetch(url, {
                         method: method,
@@ -380,5 +425,19 @@
 
 
         });
+
+        function eliminarArchivo(event, filePath, elementId) {
+            event.preventDefault();
+            // Agregar el path al form hidden
+            let container = document.getElementById('eliminar_archivos_container');
+            let input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'eliminar_archivos[]';
+            input.value = filePath;
+            container.appendChild(input);
+
+            // Ocultar miniatura
+            document.getElementById(elementId).style.display = 'none';
+        }
     </script>
 @endpush

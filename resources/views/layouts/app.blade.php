@@ -68,9 +68,44 @@ https://cdn.jsdelivr.net/gh/loadingio/ldloader@v1.0.0/dist/ldld.min.css
     <!-- CSS Files -->
     <link id="pagestyle" href="/assets/css/argon-dashboard.css" rel="stylesheet" />
 
+    <!-- Estilos personalizados: Cambio de color a #fc4b09 -->
+    <style>
+        :root {
+            --bs-primary: #fc4b09;
+            --bs-primary-rgb: 252, 75, 9;
+        }
+        .bg-primary, .bg-gradient-primary {
+            background-color: #fc4b09 !important;
+            background-image: none !important;
+        }
+        .btn-primary {
+            background-color: #fc4b09 !important;
+            border-color: #fc4b09 !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            background-color: #e34207 !important;
+            border-color: #e34207 !important;
+            color: #fff !important;
+        }
+        .text-primary {
+            color: #fc4b09 !important;
+        }
+        .border-primary {
+            border-color: #fc4b09 !important;
+        }
+        .navbar-vertical .navbar-nav > .nav-item .nav-link.active .icon,
+        .nav-pills .nav-link.active,
+        .page-item.active .page-link {
+            background-color: #fc4b09 !important;
+            border-color: #fc4b09 !important;
+            background-image: none !important;
+        }
+    </style>
+
         <!-- Manifiesto PWA -->
 <link rel="manifest" href="{{ asset('manifest.json') }}">
-<meta name="theme-color" content="#343a40">
+<meta name="theme-color" content="#fc4b09">
 <link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png') }}">
 </head>
 
