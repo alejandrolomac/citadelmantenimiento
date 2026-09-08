@@ -1,6 +1,12 @@
 @extends('layouts.app', ['class' => 'g-sidenav-show bg-gray-100'])
 
 @section('content')
+    <style>
+        .nav-pills .nav-link.active, 
+        .nav-pills .nav-link.active i {
+            color: #ffffff !important;
+        }
+    </style>
     @include('layouts.navbars.auth.topnav', ['title' => 'Dashboard de Reportes'])
 
     <div class="container-fluid py-4">
