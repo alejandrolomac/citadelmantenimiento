@@ -64,7 +64,7 @@
                 </div>
             </div>
 
-            @if(request('detalles') || ($agenda && $agenda->adjuntos))
+            @if(request('detalles') || (isset($agenda) && $agenda->adjuntos))
             <div class="row mt-5">
                 <div class="col-12 mb-3">
                     <label class="form-label" style="font-weight: bold; color: #fc4b09;">Reporte Recibido</label>
@@ -73,7 +73,7 @@
                             <p class="mb-0" style="white-space: pre-wrap;">{{ request('detalles') }}</p>
                         @endif
                         
-                        @if($agenda && $agenda->adjuntos)
+                        @if(isset($agenda) && $agenda->adjuntos)
                             @php
                                 $archivos = json_decode($agenda->adjuntos, true);
                             @endphp
